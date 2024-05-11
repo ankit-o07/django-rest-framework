@@ -15,6 +15,7 @@ class ProductSerializers(serializers.ModelSerializer):
         ]
         
     def get_my_discount(self, obj):
+        
         if not hasattr(obj,"id"):
             return None
         if not isinstance(obj,Product):
@@ -23,38 +24,4 @@ class ProductSerializers(serializers.ModelSerializer):
         return obj.get_discount()
     
 
-
-
-class PrimaryProductSerializers(serializers.ModelSerializer):
-    my_discount = serializers.SerializerMethodField(read_only=True)
-    class Meta:
-        model = Product
-        fields = [
-            'title',
-            'content',
-            'price',
-            'sale_price',
-            'my_discount',
-        ]
-        
-    def get_my_discount(self, obj):
-        print(obj.id)
-        return obj.get_discount()
-    
-
-
-class SecondaryProductSerializers(serializers.ModelSerializer):
-    my_discount = serializers.SerializerMethodField(read_only=True)
-    class Meta:
-        model = Product
-        fields = [
-            'title',
-            'content',
-            'price',
-            'sale_price',
-            'my_discount',
-        ]
-        
-    def get_my_discount(self, obj):
-        
-        return obj.get_discount()
+   
