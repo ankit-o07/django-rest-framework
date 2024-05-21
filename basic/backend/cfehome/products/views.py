@@ -1,18 +1,17 @@
-from django.shortcuts import render
-from rest_framework import generics , mixins
-from .models import Product
+from rest_framework import generics , mixins ,permissions , authentication
 from rest_framework.response import Response
-from .serializers import ProductSerializers
 from rest_framework.decorators import api_view
-from django.http import Http404
+from .models import Product
+from .serializers import ProductSerializers
+from api.permissions import IsStaffEditorPermission
 from django.shortcuts import get_object_or_404
+
 
 class ProductCreateAPIView(generics.CreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializers
     def perform_create(self, serializer):
-        # serializer.save(user=self.request.user)
-        # print(serializer.validated_data)
+       
         title = serializer.validated_data.get("title")
         content = serializer.validated_data.get('content')
        
@@ -24,21 +23,29 @@ class ProductCreateAPIView(generics.CreateAPIView):
 product_create_view = ProductCreateAPIView.as_view()
 
 
-class ProductListCreateAPIView(generics.ListAPIView):
-    
+class ProductListCreateAPIView(
+            generics.ListCreateAPIView,
+            IsStaffEditorPermission,
+            
+            ):
     queryset = Product.objects.all()
     serializer_class = ProductSerializers
+
+    # authentication_classes = [
+    #     authentication.SessionAuthentication,
+    #     TokenAuthentication,    
+    # ]
+    permission_classes = [permissions.IsAdminUser ,IsStaffEditorPermission]
     def perform_create(self, serializer):
-        # serializer.save(user=self.request.user)
-        # print(serializer.validated_data)
+        
         title = serializer.validated_data.get("title")
-        content = serializer.validated_data.get('content')
-       
+        content = serializer.validated_data.get('content') or None
+        
         if content is None :
             content = title
         serializer.save(content=content)
     
-product_list_view = ProductListCreateAPIView.as_view()
+product_list_create_view = ProductListCreateAPIView.as_view()
 
 
 
@@ -62,9 +69,9 @@ class ProductUpdateAPIView(generics.UpdateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializers
     lookup_field = "pk"
+    authentication_classes = [authentication.SessionAuthentication]
+    permission_classes = [permissions.DjangoModelPermissions]
     
-
-
     def perform_update(self, serializer):
         print("test ")
         instance = serializer.save() 
