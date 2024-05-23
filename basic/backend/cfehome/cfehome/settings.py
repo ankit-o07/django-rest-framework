@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
-
+import datetime
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -37,15 +37,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'api',
     'products',
+    'search',
+
     'rest_framework',
-    'rest_framework.authtoken'
+    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
+
+    'algoliasearch_django',
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -54,6 +62,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'cfehome.urls'
+CORS_URLS_REGEX = r"^/api/.*"
+CORS_ALLOWED_ORIGINS = []
+if DEBUG:
+    CORS_ALLOWED_ORIGINS += [
+        "http://localhost:8111"
+    ]
 
 TEMPLATES = [
     {
@@ -140,11 +154,30 @@ if DEBUG :
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES" :[
         "rest_framework.authentication.SessionAuthentication",
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         "api.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES":[
-        # "rest_framework.authentication.IsAuthenticatedOrReadOnly",
+        
          "rest_framework.permissions.IsAuthenticatedOrReadOnly",
-    ]
+    ],
+    "DEFAULT_PAGINATION_CLASS":'rest_framework.pagination.LimitOffsetPagination',
+        'PAGE_SIZE':10
+    
+
 }
 
+
+# enviroment variables -> django=dotenv -> reads ,env
+
+ALGOLIA = {
+    'APPLICATION_ID': 'NG7S648N37',
+    'API_KEY': '6d2fdd31f748a17bb7c29fda1977590b',
+    'INDEX_PREFIX' : 'cfe'
+}
+
+SIMPLE_JWT= {
+    "AUTH_HEADER_TYPES":["Bearer"],
+    "ACCESS_TOKEN_LIFETIME":datetime.timedelta(seconds=30),
+    "REFRESH_TOKEN_LIFETIME":datetime.timedelta(seconds=30),
+}

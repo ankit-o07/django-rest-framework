@@ -5,7 +5,7 @@ from .models import Product
 from .serializers import ProductSerializers
 from api.permissions import IsStaffEditorPermission
 from django.shortcuts import get_object_or_404
-
+from api.mixins import UserQuerySetMixin
 
 class ProductCreateAPIView(generics.CreateAPIView):
     queryset = Product.objects.all()
@@ -24,9 +24,9 @@ product_create_view = ProductCreateAPIView.as_view()
 
 
 class ProductListCreateAPIView(
+            UserQuerySetMixin,
             generics.ListCreateAPIView,
             IsStaffEditorPermission,
-            
             ):
     queryset = Product.objects.all()
     serializer_class = ProductSerializers
@@ -37,13 +37,23 @@ class ProductListCreateAPIView(
     # ]
     permission_classes = [permissions.IsAdminUser ,IsStaffEditorPermission]
     def perform_create(self, serializer):
-        
+        # email = serializer.validated_data.pop("email")
+        # print(email)
         title = serializer.validated_data.get("title")
         content = serializer.validated_data.get('content') or None
         
         if content is None :
             content = title
-        serializer.save(content=content)
+        serializer.save(user=self.request.user, content=content)
+    
+    def get_queryset(self, *args,**kwargs):
+        qs = super().get_queryset(*args,**kwargs)
+        request = self.request
+        user = request.user 
+        
+        if not  user.is_authenticated:
+            return Product.object.none()
+        return qs.filter(user=request.user)
     
 product_list_create_view = ProductListCreateAPIView.as_view()
 
